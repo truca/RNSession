@@ -1,0 +1,17 @@
+{
+  "name": "rnsession",
+  "version": "0.1.0",
+  "description": "React Component that manages Firebase Session for users",
+  "main": "index.js",
+  "repository": "https://github.com/truca/RNSession",
+  "author": "Ignacio Ureta <ignacio.ureta@live.com>",
+  "license": "MIT",
+  "dependencies": {
+    "firebase": "^4.8.1",
+    "native-base": "^2.3.5",
+    "prop-types": "^15.6.0",
+    "ramda": "^0.25.0",
+    "react": "^16.2.0",
+    "react-native": "^0.51.0"
+  }
+}
