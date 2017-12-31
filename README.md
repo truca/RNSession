@@ -1,3 +1,22 @@
+Instructions:
+
+1.- Create a gmail account
+2.- create a facebook account with that email (save the app secret and the AppId)
+3.- Create a firebase project (save the config object)
+4.- Allow authentication with email, facebook (use the previous saved app secret) and google
+
+5.- yarn add rnsession
+6.- import the default module
+7.- create your component from extending the module
+8.- set facebookAppId (the app id from facebook) and config (from firebase) as defaultProps to the component.
+
+9.- Now you can use the login, register, google, facebook and resetPassword
+10.- for both login and register you need to have email and pass attributes in the component's state, and in register you will also need "pass_conf" in the component's state
+11.- the resetPassword method needs an email as an argument
+
+
+Messages to translate
+
 login
 
 'auth/empty-email'

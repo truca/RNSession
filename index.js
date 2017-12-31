@@ -5,6 +5,7 @@ import { AsyncStorage } from 'react-native';
 import { Toast } from 'native-base'
 import R from 'ramda'
 
+
 let instance = null;
 
 class setupSingleton{  
@@ -12,11 +13,18 @@ class setupSingleton{
     if(!instance){
       instance = this;
       instance.setupReady = false
+      instance.user = null
     }
     return instance;
   }
   setSetupReady(){
     instance.setupReady = true
+    return instance.setupReady
+  }
+  setUser(user){
+    console.log('set user')
+    instance.user = user
+    return instance.user 
   }
 }
 
@@ -34,6 +42,27 @@ export default class RNSession extends Component {
       this.setup()
       setup.setSetupReady()
     }
+    
+
+    
+    //when changes are made on the instance's user, state should change
+
+    var interval = setInterval(() => {
+      //login
+      if(setup.user && !this.state.user) this.setState({ user: setup.user })
+      //logout
+      else if(!setup.user && this.state.user) this.setState({ user: setup.user })
+    }, 50)
+
+    this.state = { user: setup.user, interval }
+  }
+  setUser(user){
+    //this.setState({ user }, () => { console.log(this.state.user) })
+    let setup = new setupSingleton()
+    setup.setUser(user)
+  }
+  componentWillUnmount(){
+    clearInterval(this.state.interval)
   }
   async setup(){
     console.log('setup')
@@ -41,6 +70,7 @@ export default class RNSession extends Component {
     await AsyncStorage.getItem('RNS:user').then(res => {
       if(res){
         console.log("oldSessionRestored", res);
+        //this.setUser(res)
         if(this.props.onOldSessionRestored) 
           this.props.onOldSessionRestored(res)
         else console.log('onOldSessionRestored not provided')
@@ -49,6 +79,17 @@ export default class RNSession extends Component {
       console.log('oldSessionRestored error', err)
     });
     
+    //
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    /*.then(function() {
+      // New sign-in will be persisted with local persistence.
+      return firebase.auth().signInWithEmailAndPassword(email, password);
+    })*/
+    .catch(function(error) {
+      // Handle Errors here.
+      var errorCode = error.code;
+      var errorMessage = error.message;
+    });
 
     //	To handle old sessions that got stuck
     firebase.auth().getRedirectResult().then(function(result) {
@@ -64,6 +105,7 @@ export default class RNSession extends Component {
     //handles changes on firebase session state
     firebase.auth().onAuthStateChanged(async user => {
       console.log('onAuthStateChanged', user)
+      this.setUser(user)
       await AsyncStorage.setItem('RNS:user', JSON.stringify(user))
       //pedir token
 
@@ -77,25 +119,25 @@ export default class RNSession extends Component {
     });
   }
   login() {
-    console.log(this.state.user + ", " + this.state.pass);
-    const user = this.state.user;
+    console.log(this.state.email + ", " + this.state.pass);
+    const email = this.state.email;
     const pass = this.state.pass;
 
-    if(user === '') {
+    if(email === '') {
       Toast.show({ text: 
         R.pathOr('you must input your email', ['language','auth/empty-email'], this.props)
-        , position: 'bottom', buttonText: 'Ok' })
-    }else if(user.indexOf('@') === -1 || user.indexOf('.') === -1) {
+        , position: this.props.toastPosition, buttonText: this.props.toastText })
+    }else if(email.indexOf('@') === -1 || email.indexOf('.') === -1) {
       Toast.show({ text:
         R.pathOr('invalid email', ['language','auth/invalid-email'], this.props)
-        , position: 'bottom', buttonText: 'Ok' })
+        , position: this.props.toastPosition, buttonText: this.props.toastText })
     }else if(pass === '') {
       Toast.show({ text: 
         R.pathOr('you must input a password and the password confirmation', ['language','auth/empty-password'], this.props)
-        , position: 'bottom', buttonText: 'Ok' })
+        , position: this.props.toastPosition, buttonText: this.props.toastText })
     }
 
-    firebase.auth().signInWithEmailAndPassword(this.state.user, this.state.pass)
+    firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.pass)
     .catch(error => {
       var errorCode = error.code;
       var errorMessage = error.message;
@@ -104,65 +146,65 @@ export default class RNSession extends Component {
           //Thrown if the email address is not valid.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language','auth/auth/invalid-email'], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
         case 'auth/user-disabled':
           //Thrown if the user corresponding to the given email has been disabled.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language','auth/auth/user-disabled'], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
         case 'auth/user-not-found':
           //Thrown if there is no user corresponding to the given email.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language','auth/auth/user-not-found'], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
         case 'auth/wrong-password':
           //Thrown if the password is invalid for the given email, or the account corresponding to the email does not have a password set.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language','auth/auth/wrong-password'], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
       }
       console.log(error);
     })
   }
   register() {
-    console.log(this.state.user + ", " + this.state.pass);
-    const user = this.state.user;
+    console.log(this.state.email + ", " + this.state.pass);
+    const email = this.state.email;
     const pass = this.state.pass;
     const pass_conf = this.state.pass_confirmation;
 
-    if(typeof user !== 'string') console.log('user not a string')
+    if(typeof email !== 'string') console.log('email not a string')
     if(typeof pass !== 'string') console.log('pass not a string')
     if(typeof pass_conf !== 'string') console.log('pass_conf not a string')
-    if(user === '') {
+    if(email === '') {
       Toast.show({ text: 
         R.pathOr('you must input your email', ['language','auth/empty-email'], this.props)
-        , position: 'bottom', buttonText: 'Ok' })
-    }else if(user.indexOf('@') === -1 || user.indexOf('.') === -1) {
+        , position: this.props.toastPosition, buttonText: this.props.toastText })
+    }else if(email.indexOf('@') === -1 || email.indexOf('.') === -1) {
       Toast.show({ text:
         R.pathOr('invalid email', ['language','auth/invalid-email'], this.props)
-        , position: 'bottom', buttonText: 'Ok' })
+        , position: this.props.toastPosition, buttonText: this.props.toastText })
     }else if(pass === '' || pass_conf === '') {
       Toast.show({ text: 
         R.pathOr('you must input a password and the password confirmation', ['language','auth/empty-password-or-password-confirmation'], this.props)
-        , position: 'bottom', buttonText: 'Ok' })
+        , position: this.props.toastPosition, buttonText: this.props.toastText })
     }else if(pass.length < 6) {
       Toast.show({ text: 
         R.pathOr('password is too short, it must be at least 6 characters long', ['language','auth/weak-password'], this.props)
-        , position: 'bottom', buttonText: 'Ok' })
+        , position: this.props.toastPosition, buttonText: this.props.toastText })
     }else if(pass !== pass_conf) {
       Toast.show({ text: 
         R.pathOr('the password and password confirmation should be the same', ['language','auth/password-and-password-confirmation-not-equal'], this.props)
-        , position: 'bottom', buttonText: 'Ok' })
+        , position: this.props.toastPosition, buttonText: this.props.toastText })
     }else {
-      this.registerWithMail(user, pass);
+      this.registerWithMail(email, pass);
     }
   }
-  registerWithMail(user, pass) {
-    firebase.auth().createUserWithEmailAndPassword(user, pass)
+  registerWithMail(email, pass) {
+    firebase.auth().createUserWithEmailAndPassword(email, pass)
     .catch(error => {
       var errorCode = error.code;
       var errorMessage = error.message;
@@ -171,25 +213,25 @@ export default class RNSession extends Component {
           //Thrown if there already exists an account with the given email address.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/email-already-in-use' ], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break
         case 'auth/invalid-email':
           //Thrown if the email address is not valid.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/invalid-email' ], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break
         case 'auth/operation-not-allowed':
           //Thrown if email/password accounts are not enabled. Enable email/password accounts in the Firebase Console, under the Auth tab.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/operation-not-allowed' ], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break
         case 'auth/weak-password':
           //Thrown if the password is not strong enough.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/weak-password' ], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break
       }
       console.log('error en registro', error)
@@ -201,7 +243,7 @@ export default class RNSession extends Component {
       console.log('sendPasswordResetEmail', res);
       Toast.show({ text: 
         R.pathOr('E-mail sended to reset password', ['language','auth/reset-successful'], this.props) 
-        , position: 'bottom', buttonText: 'Ok' })
+        , position: this.props.toastPosition, buttonText: this.props.toastText })
     }).catch(error => {
       console.log('sendPasswordResetEmail error', err);
       let errorCode = error.code
@@ -211,43 +253,43 @@ export default class RNSession extends Component {
           //Thrown if the email address is not valid.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/invalid-email' ], this.props) 
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break
         case 'auth/missing-android-pkg-name':
           //An Android package name must be provided if the Android app is required to be installed.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/missing-android-pkg-name' ], this.props) 
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break
         case 'auth/missing-continue-uri':
           //A continue URL must be provided in the request.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/missing-continue-uri' ], this.props) 
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break
         case 'auth/missing-ios-bundle-id':
           //An iOS Bundle ID must be provided if an App Store ID is provided.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/missing-ios-bundle-id' ], this.props) 
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break
         case 'auth/invalid-continue-uri':
           //The continue URL provided in the request is invalid.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/invalid-continue-uri' ], this.props) 
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break
         case 'auth/unauthorized-continue-uri':
           //The domain of the continue URL is not whitelisted. Whitelist the domain in the Firebase console.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/unauthorized-continue-uri' ], this.props) 
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break
         case 'auth/user-not-found':
           //Thrown if there is no user corresponding to the email address.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/user-not-found' ], this.props) 
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break
       }
     });
@@ -278,10 +320,11 @@ export default class RNSession extends Component {
     }
   }
   async facebook() {
+    console.log( 'facebookAppId', this.props, this.state )
     if(!this.props.facebookAppId){
-      Toast.show({ text: this.props.languages[this.props.language].auth.noFacebookAppId || 
-        'Facebook login is not working currently, try another form of login'
-        , position: 'bottom', buttonText: 'Ok' })
+      Toast.show({ text: 
+        R.pathOr('Facebook login is not working currently, try another form of login', ['language', 'auth/facebook-app-id-not-provided' ], this.props)
+        , position: this.props.toastPosition, buttonText: this.props.toastText })
       console.log('facebookAppId not provided')
       return
     }
@@ -326,49 +369,49 @@ export default class RNSession extends Component {
           //Thrown if there already exists an account with the email address asserted by the credential. Resolve this by calling firebase.auth.Auth#fetchProvidersForEmail and then asking the user to sign in using one of the returned providers. Once the user is signed in, the original credential can be linked to the user with firebase.User#linkWithCredential.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/account-exists-with-different-credential' ], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
         case 'auth/invalid-credential':
           //Thrown if the credential is malformed or has expired.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/invalid-credential' ], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
         case 'auth/operation-not-allowed':
           //Thrown if the type of account corresponding to the credential is not enabled. Enable the account type in the Firebase Console, under the Auth tab.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/operation-not-allowed' ], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
         case 'auth/user-disabled':
           //Thrown if the user corresponding to the given credential has been disabled.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/user-disabled' ], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
         case 'auth/user-not-found':
           //Thrown if signing in with a credential from firebase.auth.EmailAuthProvider#credential and there is no user corresponding to the given email.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/user-not-found' ], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
         case 'auth/wrong-password':
           //Thrown if signing in with a credential from firebase.auth.EmailAuthProvider#credential and the password is invalid for the given email, or if the account corresponding to the email does not have a password set.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/wrong-password' ], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
         case 'auth/invalid-verification-code':
           //Thrown if the credential is a firebase.auth.PhoneAuthProvider#credential and the verification code of the credential is not valid.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/invalid-verification-code' ], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
         case 'auth/invalid-verification-id':
           //Thrown if the credential is a firebase.auth.PhoneAuthProvider#credential and the verification ID of the credential is not valid.
           Toast.show({ text: 
             R.pathOr(errorMessage, ['language', 'auth/invalid-verification-id' ], this.props)
-            , position: 'bottom', buttonText: 'Ok' })
+            , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
       }
       console.log('error on google login', error )
@@ -378,6 +421,7 @@ export default class RNSession extends Component {
     firebase.auth().signOut().then(async () => {
       console.log("Logout");
       await AsyncStorage.removeItem('RNS:user')
+      //this.setUser(null)
       if(this.props.onLogout) this.props.onLogout()
       else console.log('onLogout not provided')
     }).catch(error => {
@@ -389,16 +433,7 @@ export default class RNSession extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({
-  language: state.language,
-  languages: state.languages,
-})
-
-/**
- * user
-  language
-  languages
-
-  login
-  logout
- */
+RNSession.defaultProps = {
+  toastPosition: 'bottom',
+  toastText: 'Ok'
+}
