@@ -118,10 +118,10 @@ export default class RNSession extends Component {
       }
     });
   }
-  login() {
-    console.log(this.state.email + ", " + this.state.pass);
+  login(email, pass) {
+    /*console.log(this.state.email + ", " + this.state.pass);
     const email = this.state.email;
-    const pass = this.state.pass;
+    const pass = this.state.pass;*/
 
     if(email === '') {
       Toast.show({ text: 
@@ -170,11 +170,11 @@ export default class RNSession extends Component {
       console.log(error);
     })
   }
-  register() {
-    console.log(this.state.email + ", " + this.state.pass);
+  register(email, pass, pass_conf) {
+    /*console.log(this.state.email + ", " + this.state.pass);
     const email = this.state.email;
     const pass = this.state.pass;
-    const pass_conf = this.state.pass_confirmation;
+    const pass_conf = this.state.pass_confirmation;*/
 
     if(typeof email !== 'string') console.log('email not a string')
     if(typeof pass !== 'string') console.log('pass not a string')

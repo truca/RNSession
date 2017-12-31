@@ -1,4 +1,11 @@
-Instructions:
+
+This package will help you setup your session with different login providers super fast
+
+Data:
+
+the components that extend this component will have the "user" attribute in their state, it can be null or a firebase user data
+
+Setup:
 
 1.- Create a gmail account
 2.- create a facebook account with that email (save the app secret and the AppId)
@@ -11,8 +18,27 @@ Instructions:
 8.- set facebookAppId (the app id from facebook) and config (from firebase) as defaultProps to the component.
 
 9.- Now you can use the login, register, google, facebook and resetPassword
-10.- for both login and register you need to have email and pass attributes in the component's state, and in register you will also need "pass_conf" in the component's state
-11.- the resetPassword method needs an email as an argument
+
+Methods
+
+login(email, password)
+register(email, password, password_confirmation)
+resetPassword(email)
+facebook()
+google()
+
+Props
+
+Mandatory
+
+facebookAppId: App Id from the facebook app
+config: config object from firebase
+
+Optional
+
+toastPosition: { 'top' | 'bottom' } select the position of the toasts
+toastText: button text for the toats
+language: object with translations for the toast messages. Below you can find the attributes of the object for each of the messages for the toasts and the situation where those messages appear. you can translate all of the messages, some or none. the messages that are not translated will use the firebase default message in english. Example: { 'auth/empty-email': "Your user is empty D:" }
 
 
 Messages to translate
