@@ -5,19 +5,44 @@ Data:
 
 the components that extend this component will have the "user" attribute in their state, it can be null or a firebase user data
 
-Setup:
+A.- Facebook Setup
 
 1.- Create a gmail account
-2.- create a facebook account with that email (save the app secret and the AppId)
-3.- Create a firebase project (save the config object)
-4.- Allow authentication with email, facebook (use the previous saved app secret) and google
+2.- create a facebook account with that email
+3.- Create a facebook app here: https://developers.facebook.com/quickstarts/, basic configuration
+3.- Add the "login with facebook" product and quit the quick start
+4.- Go to Settings > Basic, Add host.exp.Exponent as an iOS Bundle ID. Add rRW++LUjmZZ+58EbN5DVhGAnkX4= as an Android key hash and add a package name (country.companyName.appName, i.e: us.google.maps)
+5.- Go to panel and save the app secret and the AppId
+6.- You may have to switch the app from 'development mode' to 'public mode' on the Facebook developer page before other users can log in. You can find it in App Review. (it will ask you for a privacy policy, you can build one in https://www.iubenda.com/en)
 
-5.- yarn add rnsession
-6.- import the default module
-7.- create your component from extending the module
-8.- set facebookAppId (the app id from facebook) and config (from firebase) as defaultProps to the component.
+reference: https://github.com/expo/expo-docs/blob/master/versions/v24.0.0/sdk/facebook.md
 
-9.- Now you can use the login, register, google, facebook, logout and resetPassword
+B.- Firebase Setup:
+
+1.- Create a firebase project (save the config object)
+2.- DEVELOP > Authentication: Allow authentication with email, facebook (use the previous saved app secret and app id) and google
+3.- Create Android and iOS Apps: Top left, click the cog and then click "project configuration". There you can create both android and iOS apps (be sure to use the same package name that you use in the step A4)
+4.- Click to add a web app but just copy the config object, something like:
+
+var config = {
+  apiKey: "apikey",
+  authDomain: "asd.firebaseapp.com",
+  databaseURL: "https://asd.firebaseio.com",
+  projectId: "asd",
+  storageBucket: "asd.appspot.com",
+  messagingSenderId: "numbers"
+}
+
+C.- Project Setup
+
+1.- Create an app with XDE (Expo Development Enviroment)
+2.- yarn add rnsession react-native native-base
+3.- Restart the packager from XDE
+4.- Add the Register, Login and ResetPassword screen to the screen folder (change the default props to the facebook appID and the firebase config object)
+5.- Add those screens to the navigation (navigation/MainTabNavigator)
+6.- copy and paste the new App.js (Root necesario para los Toast)
+
+After this you should be able to 
 
 Methods
 
@@ -40,6 +65,12 @@ Optional
 toastPosition: { 'top' | 'bottom' } select the position of the toasts (default is 'bottom')
 toastText: button text for the toats (default is 'Ok')
 language: object with translations for the toast messages. Below you can find the attributes of the object for each of the messages for the toasts and the situation where those messages appear. you can translate all of the messages, some or none. the messages that are not translated will use the firebase default message in english. Example: { 'auth/empty-email': "You have to provide an email" }
+
+Contributions
+
+1.- I used the Toasts from native-base because they were easy to set-up, but they opinionate the project a lot. i would like to use less opinionated Toast.
+
+2.- Tests
 
 
 Messages to translate
