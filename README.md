@@ -17,15 +17,16 @@ Setup:
 7.- create your component from extending the module
 8.- set facebookAppId (the app id from facebook) and config (from firebase) as defaultProps to the component.
 
-9.- Now you can use the login, register, google, facebook and resetPassword
+9.- Now you can use the login, register, google, facebook, logout and resetPassword
 
 Methods
 
 login(email, password)
 register(email, password, password_confirmation)
-resetPassword(email)
 facebook()
 google()
+logout()
+resetPassword(email)
 
 Props
 
