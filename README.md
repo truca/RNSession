@@ -70,7 +70,7 @@ After this you should be able to export the Session component and extend it in y
 - toastPosition: { 'top' | 'bottom' } select the position of the toasts (default is 'bottom')
 - toastText: button text for the toats (default is 'Ok')
 - language: object with translations for the toast messages. Below you can find the attributes of the object for each of the messages for the toasts and the situation where those messages appear. you can translate all of the messages, some or none. the messages that are not translated will use the firebase default message in english. Example: { - 'auth/empty-email': "You have to provide an email" }
-- logsLevel: { 0 | 1 | 2 | 3 }
+- logsLevel: { 0 | 1 | 2 | 3 }: default is 2
   - 0: won't print any log
   - 1: will only print the props that you missed, like the facebookAppId
   - 2: All the previous plus errors
