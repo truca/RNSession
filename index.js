@@ -30,7 +30,7 @@ class setupSingleton{
 export default class RNSession extends Component {
   constructor(props) {
     super(props)
-    if(!this.props.config){
+    if(!props.config){
       if(props.logsLevel > 0) console.log('firebase config not provided. login will not work')
     }
     else if (firebase.apps.length === 0) {
