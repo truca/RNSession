@@ -22,7 +22,6 @@ class setupSingleton{
     return instance.setupReady
   }
   setUser(user){
-    console.log('set user')
     instance.user = user
     return instance.user 
   }
@@ -32,7 +31,7 @@ export default class RNSession extends Component {
   constructor(props) {
     super(props)
     if(!this.props.config){
-      console.log('firebase config not provided. login will not work')
+      if(props.logsLevel > 0) console.log('firebase config not provided. login will not work')
     }
     else if (firebase.apps.length === 0) {
       firebase.initializeApp(this.props.config);
@@ -57,7 +56,6 @@ export default class RNSession extends Component {
     this.state = { user: setup.user, interval }
   }
   setUser(user){
-    //this.setState({ user }, () => { console.log(this.state.user) })
     let setup = new setupSingleton()
     setup.setUser(user)
   }
@@ -65,18 +63,17 @@ export default class RNSession extends Component {
     clearInterval(this.state.interval)
   }
   async setup(){
-    console.log('setup')
     //tries to restore old sessions
     await AsyncStorage.getItem('RNS:user').then(res => {
       if(res){
-        console.log("oldSessionRestored", res);
+        if(this.props.logsLevel > 2) console.log("oldSessionRestored", res);
         //this.setUser(res)
         if(this.props.onOldSessionRestored) 
           this.props.onOldSessionRestored(res)
-        else console.log('onOldSessionRestored not provided')
+        else if(this.props.logsLevel > 0) console.log('onOldSessionRestored not provided')
       }
     }).catch(err => {
-      console.log('oldSessionRestored error', err)
+      if(this.props.logsLevel > 1) console.log('oldSessionRestored error', err)
     });
     
     //
@@ -91,37 +88,23 @@ export default class RNSession extends Component {
       var errorMessage = error.message;
     });
 
-    //	To handle old sessions that got stuck
-    firebase.auth().getRedirectResult().then(function(result) {
-      //	success case will be handled with onAuthStateChanged.
-      console.log('getRedirectResult', result);
-    }).catch(function(error) {
-      // Handle Errors here.
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log('getRedirectResult error', errorCode, errorMessage);
-    });
-
     //handles changes on firebase session state
     firebase.auth().onAuthStateChanged(async user => {
-      console.log('onAuthStateChanged', user)
+      if(this.props.logsLevel > 2) console.log('onAuthStateChanged', user)
       this.setUser(user)
       await AsyncStorage.setItem('RNS:user', JSON.stringify(user))
       //pedir token
 
       if(user && user.providerData.length === 1) {
         if(this.props.onLogin) this.props.onLogin(user)
-        else console.log('onLogin not provided')
+        else if(this.props.logsLevel > 0) console.log('onLogin not provided')
       }else{
         if(this.props.onLogout) this.props.onLogout()
-        else console.log('onLogout not provided')
+        else if(this.props.logsLevel > 0) console.log('onLogout not provided')
       }
     });
   }
   login(email, pass) {
-    /*console.log(this.state.email + ", " + this.state.pass);
-    const email = this.state.email;
-    const pass = this.state.pass;*/
 
     if(email === '') {
       Toast.show({ text: 
@@ -167,18 +150,14 @@ export default class RNSession extends Component {
             , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
       }
-      console.log(error);
+      if(this.props.logsLevel > 1) console.log('signInWithEmailAndPassword error', error);
     })
   }
   register(email, pass, pass_conf) {
-    /*console.log(this.state.email + ", " + this.state.pass);
-    const email = this.state.email;
-    const pass = this.state.pass;
-    const pass_conf = this.state.pass_confirmation;*/
 
-    if(typeof email !== 'string') console.log('email not a string')
-    if(typeof pass !== 'string') console.log('pass not a string')
-    if(typeof pass_conf !== 'string') console.log('pass_conf not a string')
+    if(typeof email !== 'string' && this.props.logsLevel > 1) console.log('email not a string')
+    if(typeof pass !== 'string' && this.props.logsLevel > 1) console.log('pass not a string')
+    if(typeof pass_conf !== 'string' && this.props.logsLevel > 1) console.log('pass_conf not a string')
     if(email === '') {
       Toast.show({ text: 
         R.pathOr('you must input your email', ['language','auth/empty-email'], this.props)
@@ -234,18 +213,18 @@ export default class RNSession extends Component {
             , position: this.props.toastPosition, buttonText: this.props.toastText })
           break
       }
-      console.log('error en registro', error)
+      if(this.props.logsLevel > 1 ) console.log('register error', error)
     })
   }
   resetPassword( email ) {
     firebase.auth().sendPasswordResetEmail( email )
     .then(res => {
-      console.log('sendPasswordResetEmail', res);
+      if(this.props.logsLevel > 2 ) console.log('sendPasswordResetEmail', res);
       Toast.show({ text: 
         R.pathOr('E-mail sended to reset password', ['language','auth/reset-successful'], this.props) 
         , position: this.props.toastPosition, buttonText: this.props.toastText })
     }).catch(error => {
-      console.log('sendPasswordResetEmail error', err);
+      if(this.props.logsLevel > 1 ) console.log('sendPasswordResetEmail error', err);
       let errorCode = error.code
       let errorMessage = error.message
       switch(errorCode){
@@ -308,8 +287,6 @@ export default class RNSession extends Component {
         // Build Firebase credential with the Facebook access token.
         const credential = firebase.auth.GoogleAuthProvider.credential(result.idToken);
       
-        console.log('credencial', credential, result)
-
         // Sign in with credential from the Facebook user.
         this.handleSocialErrors(firebase.auth().signInWithCredential(credential))
       } else {
@@ -320,18 +297,17 @@ export default class RNSession extends Component {
     }
   }
   async facebook() {
-    console.log( 'facebookAppId', this.props, this.state )
     if(!this.props.facebookAppId){
       Toast.show({ text: 
         R.pathOr('Facebook login is not working currently, try another form of login', ['language', 'auth/facebook-app-id-not-provided' ], this.props)
         , position: this.props.toastPosition, buttonText: this.props.toastText })
-      console.log('facebookAppId not provided')
+      if(this.props.logsLevel > 0) console.log('facebookAppId not provided')
       return
     }
     const { type, token } = await Expo.Facebook.logInWithReadPermissionsAsync(this.props.facebookAppId, {
         permissions: ['public_profile', 'email'],
       });
-    console.log('return type', type)
+    if(this.props.logsLevel > 2 ) console.log('facebook return type', type)
     if (type === 'success') {
       // Get the user's name using Facebook's Graph API
 
@@ -414,18 +390,17 @@ export default class RNSession extends Component {
             , position: this.props.toastPosition, buttonText: this.props.toastText })
           break;
       }
-      console.log('error on google login', error )
+      if(this.props.logsLevel > 1 ) console.log('social error', error )
     });
   }
   logout() {
     firebase.auth().signOut().then(async () => {
-      console.log("Logout");
       await AsyncStorage.removeItem('RNS:user')
       //this.setUser(null)
       if(this.props.onLogout) this.props.onLogout()
-      else console.log('onLogout not provided')
+      else if(this.props.logsLevel > 0) console.log('onLogout not provided')
     }).catch(error => {
-      console.log("Logout error", error);
+      if(this.props.logsLevel > 1) console.log("Logout error", error);
     });
   }
   render() {
@@ -435,5 +410,10 @@ export default class RNSession extends Component {
 
 RNSession.defaultProps = {
   toastPosition: 'bottom',
-  toastText: 'Ok'
+  toastText: 'Ok',
+  //0: none
+  //1: most important, missing props
+  //2: errors
+  //3: all
+  logsLevel: 2,
 }
