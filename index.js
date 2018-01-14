@@ -404,7 +404,7 @@ export default class RNSession extends Component {
     });
   }
   render() {
-    return false
+    return ''
   }
 }
 
