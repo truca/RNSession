@@ -28,6 +28,11 @@ class setupSingleton{
 }
 
 export default class RNSession extends Component {
+  state = {
+    user: null,
+    token: null,
+    provider: null,
+  }
   constructor(props) {
     super(props)
     if(!props.config){
@@ -121,6 +126,7 @@ export default class RNSession extends Component {
     }
 
     firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.pass)
+    .then(res => { this.setState({ provider: 'email' }) })
     .catch(error => {
       var errorCode = error.code;
       var errorMessage = error.message;
@@ -184,6 +190,7 @@ export default class RNSession extends Component {
   }
   registerWithMail(email, pass) {
     firebase.auth().createUserWithEmailAndPassword(email, pass)
+    .then(res => { this.setState({ provider: 'email' }) })
     .catch(error => {
       var errorCode = error.code;
       var errorMessage = error.message;
@@ -283,6 +290,7 @@ export default class RNSession extends Component {
   
       if (result.type === 'success') {
         //return result.accessToken;
+        this.setState({ provider: 'google', token: result.idToken })
 
         // Build Firebase credential with the Facebook access token.
         const credential = firebase.auth.GoogleAuthProvider.credential(result.idToken);
@@ -310,6 +318,7 @@ export default class RNSession extends Component {
     if(this.props.logsLevel > 2 ) console.log('facebook return type', type)
     if (type === 'success') {
       // Get the user's name using Facebook's Graph API
+      this.setState({ provider: 'facebook', token })
 
       // Build Firebase credential with the Facebook access token.
       const credential = firebase.auth.FacebookAuthProvider.credential(token);
