@@ -1,6 +1,6 @@
 {
   "name": "rnsession",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "React Component that manages Firebase Session for users",
   "main": "index.js",
   "repository": "https://github.com/truca/RNSession",
