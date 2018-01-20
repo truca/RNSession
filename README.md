@@ -1,16 +1,16 @@
 # React Native Session
 
-##What is this for
+## What is this for
 
 This package will help you setup your session with different login providers super fast in a create-react-native-app app
 
-##Data:
+## Data:
 
 the components that extend this component will have the "user" attribute in their state, it can be null or a firebase user data
 
-##Setup
+## Setup
 
-###Facebook Setup
+### Facebook Setup
 
 1. Create a gmail account
 2. create a facebook account with that email
@@ -22,7 +22,7 @@ the components that extend this component will have the "user" attribute in thei
 
 reference: [Facebook guide](https://github.com/expo/expo-docs/blob/master/versions/v24.0.0/sdk/facebook.md)
 
-###Firebase Setup:
+### Firebase Setup:
 
 1. Create a firebase project (save the config object)
 2. DEVELOP > Authentication: Allow authentication with email, facebook (use the previous saved app secret and app id) and google
@@ -40,7 +40,7 @@ var config = {
 }
 ````
 
-###Project Setup
+### Project Setup
 
 1. Create an app with XDE (Expo Development Enviroment)
 2. yarn add rnsession react-native native-base
@@ -51,7 +51,7 @@ var config = {
 
 After this you should be able to export the Session component and extend it in your components to get access to the following Methods
 
-##Methods
+## Methods
 
 - login(email, password): Email login with an already existing account
 - register(email, password, password_confirmation): register a new email account
@@ -60,14 +60,14 @@ After this you should be able to export the Session component and extend it in y
 - logout(): logout from any active session
 - resetPassword(email): if the account exists, sends an email to change the password
 
-##Props
+## Props
 
-###Mandatory
+### Mandatory
 
 - facebookAppId: App Id from the facebook app
 - config: config object from firebase
 
-###Optional
+### Optional
 
 - toastPosition: { 'top' | 'bottom' } select the position of the toasts (default is 'bottom')
 - toastText: button text for the toats (default is 'Ok')
@@ -78,16 +78,16 @@ After this you should be able to export the Session component and extend it in y
   - 2: All the previous plus errors
   - 3: All the logs. (This adds the successful logs) 
 
-##Contributions
+## Contributions
 
 - Toasts: I used the Toasts from native-base because they were easy to set-up, but they opinionate the project a lot. i would like to use a less opinionated alternative.
 
 - Tests
 
 
-##Messages to translate
+## Messages to translate
 
-###Login
+### Login
 
 - 'auth/empty-email': Thrown if the user input is empty
 - 'auth/empty-password': Thrown if the password or the password confirmation are empty
@@ -97,7 +97,7 @@ After this you should be able to export the Session component and extend it in y
 - 'auth/user-not-found':: Thrown if there is no user corresponding to the given email.
 - 'auth/wrong-password':: Thrown if the password is invalid for the given email, or the account corresponding to the email does not have a password set.
 
-###register
+### register
 
 - 'auth/empty-email'  : Thrown if the user input is empty
 - 'auth/empty-password-or-password-confirmation': Thrown if the password or the password confirmation are empty
@@ -108,7 +108,7 @@ After this you should be able to export the Session component and extend it in y
 - 'auth/operation-not-allowed':: Thrown if email/password accounts are not enabled. Enable email/password accounts in the Firebase Console, under the Auth tab.          
 - 'auth/weak-password':: Thrown if the password is not strong enough.  (shorter than 6 characters)        
 
-###reset password
+### reset password
 
 - 'auth/reset-successful': Thrown if the reset was successful
 - 'auth/invalid-email':: Thrown if the email address is not valid.          
@@ -119,7 +119,7 @@ After this you should be able to export the Session component and extend it in y
 - 'auth/unauthorized-continue-uri':: The domain of the continue URL is not whitelisted. Whitelist the domain in the Firebase console.          
 - 'auth/user-not-found':: Thrown if there is no user corresponding to the email address.          
 
-###social errors
+### social errors
 
 - 'auth/account-exists-with-different-credential': Thrown if there already exists an account with the email address asserted by the credential. Resolve this by calling firebase.auth.Auth#fetchProvidersForEmail and then asking the user to sign in using one of the returned providers. Once the user is signed in, the original credential can be linked to the user with firebase.User#linkWithCredential.
 - 'auth/invalid-credential': Thrown if the credential is malformed or has expired.
