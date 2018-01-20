@@ -73,6 +73,7 @@ After this you should be able to export the Session component and extend it in y
 
 ### Optional
 
+- facebookPermissions: array with strings (i.e. ['public\_profile', 'email'] ). Default: ['public_profile']
 - toastPosition: { 'top' | 'bottom' } select the position of the toasts (default is 'bottom')
 - toastText: button text for the toats (default is 'Ok')
 - language: object with translations for the toast messages. Below you can find the attributes of the object for each of the messages for the toasts and the situation where those messages appear. you can translate all of the messages, some or none. the messages that are not translated will use the firebase default message in english. Example: { - 'auth/empty-email': "You have to provide an email" }

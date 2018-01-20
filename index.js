@@ -358,7 +358,7 @@ export default class RNSession extends Component {
       return
     }
     const { type, token } = await Expo.Facebook.logInWithReadPermissionsAsync(this.props.facebookAppId, {
-        permissions: ['public_profile', 'email'],
+        permissions: facebookPermissions? facebookPermissions : ['public_profile'],
       });
     if(this.props.logsLevel > 2 ) console.log('facebook return type', type)
     if (type === 'success') {
@@ -464,6 +464,7 @@ export default class RNSession extends Component {
 RNSession.propTypes = {
   config: PropTypes.object,
   facebookAppId: PropTypes.string,
+  facebookPermissions: PropTypes.array,
   onLogin: PropTypes.func,
   onLogout: PropTypes.func,
   toastPosition: PropTypes.string,
