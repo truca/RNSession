@@ -8,22 +8,56 @@ import R from 'ramda'
 
 let instance = null;
 
-class setupSingleton{  
+class SetupSingleton{  
   constructor() {
     if(!instance){
       instance = this;
       instance.setupReady = false
       instance.user = null
+      instance.token = null
+      instance.provider = null
     }
     return instance;
+  }
+  async initialize(){
+    let user = await AsyncStorage.getItem('RNS:user')
+    let token = await AsyncStorage.getItem('RNS:token')
+    let provider = await AsyncStorage.getItem('RNS:provider')
+
+    instance.user = user && JSON.parse(user) || null
+    instance.token = token || null
+    instance.provider = provider || null
   }
   setSetupReady(){
     instance.setupReady = true
     return instance.setupReady
   }
-  setUser(user){
+  async setUser(user){
+    console.log('RNS setUser')
     instance.user = user
+    await AsyncStorage.setItem('RNS:user', JSON.stringify(user))
     return instance.user 
+  }
+  async setToken(token){
+    console.log('RNS setToken')
+    instance.token = token
+    await AsyncStorage.setItem('RNS:token', token)
+    return instance.token 
+  }
+  async setProvider(provider){
+    console.log('RNS setProvider')
+    instance.provider = provider
+    await AsyncStorage.setItem('RNS:provider', provider)
+    return instance.provider 
+  }
+  async logout(){
+    console.log('RNS logout')
+    instance.user = null
+    instance.token = null
+    instance.provider = null
+    await AsyncStorage.removeItem('RNS:user')
+    await AsyncStorage.removeItem('RNS:token')
+    await AsyncStorage.removeItem('RNS:provider')
   }
 }
 
@@ -35,41 +69,51 @@ export default class RNSession extends Component {
   }
   constructor(props) {
     super(props)
+    this.setup = new SetupSingleton()
+    let setup = this.setup
+
     if(!props.config){
       if(props.logsLevel > 0) console.log('firebase config not provided. login will not work')
     }
     else if (firebase.apps.length === 0) {
       firebase.initializeApp(this.props.config);
     }
-    let setup = new setupSingleton()
     if( !setup.setupReady ){
-      this.setup()
+      this.configure()
       setup.setSetupReady()
     }
-    
-
     
     //when changes are made on the instance's user, state should change
 
     var interval = setInterval(() => {
-      //login
       if(setup.user && !this.state.user) this.setState({ user: setup.user })
-      //logout
       else if(!setup.user && this.state.user) this.setState({ user: setup.user })
+
+      if(setup.token && !this.state.token) this.setState({ token: setup.token })
+      else if(!setup.token && this.state.token) this.setState({ token: setup.token })
+
+      if(setup.provider && !this.state.provider) this.setState({ provider: setup.provider })
+      else if(!setup.provider && this.state.provider) this.setState({ provider: setup.provider })
     }, 50)
 
     this.state = { user: setup.user, interval }
   }
   setUser(user){
-    let setup = new setupSingleton()
-    setup.setUser(user)
+    if(!user) this.setup.logout()
+    else this.setup.setUser(user)
+  }
+  setToken(token){
+    this.setup.setToken(token)
+  }
+  setProvider(provider){
+    this.setup.setProvider(provider)
   }
   componentWillUnmount(){
     clearInterval(this.state.interval)
   }
-  async setup(){
+  async configure(){
     //tries to restore old sessions
-    await AsyncStorage.getItem('RNS:user').then(res => {
+    /*await AsyncStorage.getItem('RNS:user').then(res => {
       if(res){
         if(this.props.logsLevel > 2) console.log("oldSessionRestored", res);
         //this.setUser(res)
@@ -79,7 +123,8 @@ export default class RNSession extends Component {
       }
     }).catch(err => {
       if(this.props.logsLevel > 1) console.log('oldSessionRestored error', err)
-    });
+    });*/
+    this.setup.initialize() 
     
     //
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
@@ -97,7 +142,6 @@ export default class RNSession extends Component {
     firebase.auth().onAuthStateChanged(async user => {
       if(this.props.logsLevel > 2) console.log('onAuthStateChanged', user)
       this.setUser(user)
-      await AsyncStorage.setItem('RNS:user', JSON.stringify(user))
       //pedir token
 
       if(user && user.providerData.length === 1) {
@@ -126,7 +170,7 @@ export default class RNSession extends Component {
     }
 
     firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.pass)
-    .then(res => { this.setState({ provider: 'email' }) })
+    .then(res => { this.setProvider('email') })
     .catch(error => {
       var errorCode = error.code;
       var errorMessage = error.message;
@@ -190,7 +234,7 @@ export default class RNSession extends Component {
   }
   registerWithMail(email, pass) {
     firebase.auth().createUserWithEmailAndPassword(email, pass)
-    .then(res => { this.setState({ provider: 'email' }) })
+    .then(res => { this.setProvider('email') })
     .catch(error => {
       var errorCode = error.code;
       var errorMessage = error.message;
@@ -290,8 +334,9 @@ export default class RNSession extends Component {
   
       if (result.type === 'success') {
         //return result.accessToken;
-        this.setState({ provider: 'google', token: result.idToken })
-
+        this.setProvider('google')
+        this.setToken(result.idToken)
+        
         // Build Firebase credential with the Facebook access token.
         const credential = firebase.auth.GoogleAuthProvider.credential(result.idToken);
       
@@ -318,7 +363,8 @@ export default class RNSession extends Component {
     if(this.props.logsLevel > 2 ) console.log('facebook return type', type)
     if (type === 'success') {
       // Get the user's name using Facebook's Graph API
-      this.setState({ provider: 'facebook', token })
+      this.setProvider('facebook')
+      this.setToken(token)
 
       // Build Firebase credential with the Facebook access token.
       const credential = firebase.auth.FacebookAuthProvider.credential(token);
@@ -404,8 +450,6 @@ export default class RNSession extends Component {
   }
   logout() {
     firebase.auth().signOut().then(async () => {
-      await AsyncStorage.removeItem('RNS:user')
-      //this.setUser(null)
       if(this.props.onLogout) this.props.onLogout()
       else if(this.props.logsLevel > 0) console.log('onLogout not provided')
     }).catch(error => {
@@ -415,6 +459,16 @@ export default class RNSession extends Component {
   render() {
     return ''
   }
+}
+
+RNSession.propTypes = {
+  config: PropTypes.object,
+  facebookAppId: PropTypes.string,
+  onLogin: PropTypes.func,
+  onLogout: PropTypes.func,
+  toastPosition: PropTypes.string,
+  toastText: PropTypes.string,
+  logsLevel: PropTypes.number,
 }
 
 RNSession.defaultProps = {
