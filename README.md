@@ -6,10 +6,10 @@ This package will help you setup your session with different login providers sup
 
 ## Data:
 
-the components that extend this component will have the this attribute in their state
+the components that extend this component will have the these attribute in their state
 
 - user: { null | firebase user }
-- provider: { null | 'email' | 'facebook' | 'google' } depending on the method that the user used
+- provider: { null | 'email' | 'facebook' | 'google' } depending on the login method
 - token: { null | facebook user token | google user token } depending on the login method
 
 ## Setup
