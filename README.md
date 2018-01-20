@@ -1,3 +1,5 @@
+# React Native Session
+
 ##What is this for
 
 This package will help you setup your session with different login providers super fast in a create-react-native-app app
